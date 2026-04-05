@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, make_response
 from flask_restful import Api, Resource
 
 from search import search
@@ -10,13 +10,13 @@ api = Api(app)
 @api.resource("/")
 class Hello(Resource):
     def get(self):
-        return "<p>hello, world!</p>"
+        return make_response("hello, world")
 
 @api.resource("/prompt")
 class Prompt(Resource):
     def get(self):
         if 'q' not in request.args:
-            return 400
+            return make_response("no query parameter q found :(", 400)
 
         return prompt(request.args['q'])
 
@@ -24,9 +24,12 @@ class Prompt(Resource):
 class Search(Resource):
     def get(self):
         if 'q' not in request.args:
-            return 400
+            return make_response("no query parameter q found :(", 400)
 
         return search(request.args['q'])
 
 if __name__ == "__main__":
+    with app.app_context():
+        # initialize chroma database
+        pass
     app.run(debug=True)
