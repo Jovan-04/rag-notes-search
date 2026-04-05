@@ -1,1 +1,12 @@
+# python bytecode n stuff
+__pycache__/
+*.py[cod]
+*$py.class
+
+# environments
+.env
+.venv
+
+# platform-specific
 .DS_Store
+.vscode/
