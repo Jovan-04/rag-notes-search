@@ -10,3 +10,6 @@ __pycache__/
 # platform-specific
 .DS_Store
 .vscode/
+
+# chroma stuff
+*.sqlite3
