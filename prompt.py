@@ -33,7 +33,7 @@ def prompt(query: str) -> str:
             'role': 'user',
             'content': (
                 f"Query: {query}\n\n"
-                f"Retrieved course information:\n{retrieved}\n\n"
+                f"Retrieved course information:\n{retrieved_context}\n\n"
                 'Please answer the question using the retrieved notes information.'
             ),
         },

@@ -16,10 +16,8 @@ class Prompt(Resource):
     def get(self):
         if 'q' not in request.args:
             return make_response("no query parameter q found :(", 400)
-        
-        final_answer = prompt(user_query)
 
-        return make_response(final_answer, 200)
+        return prompt(request.args['q'])
 
 @api.resource("/search")
 class Search(Resource):
