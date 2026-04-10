@@ -13,4 +13,7 @@ __pycache__/
 
 # chroma stuff
 *.sqlite3
+chroma-data
+index_tracker.json
 74caa2d1-58ca-42b1-96ff-820fb81ce025
+e6539e17-b96f-4b47-8053-d2eab4c47347

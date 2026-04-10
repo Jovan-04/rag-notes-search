@@ -3,7 +3,11 @@ import os
 import json
 
 # initialize 
-CHROMA_PATH = "/Users/carter/NLP/rag-notes-search" # change to whatever you path is
+with open(".env") as envfile:
+    ENV = {k:v for (k, v) in map(lambda l: l.split('='), envfile.read().splitlines())}
+
+CHROMA_PATH = ENV["CHROMA_PATH"]
+
 # creates a folder where the data will be stored
 client = chromadb.PersistentClient(path=CHROMA_PATH)
 # create or get collection if already exists
@@ -11,7 +15,7 @@ client = chromadb.PersistentClient(path=CHROMA_PATH)
 collection = client.get_or_create_collection(name="test_notes")
 
 # tracks which notes have already been processed
-time_tracker = "index_tracker.json"
+time_tracker = os.path.join(CHROMA_PATH, "index_tracker.json")
 
 def build_index():
     def chunk_text(text, chunk_size=200):
