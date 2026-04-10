@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response
 from flask_restful import Api, Resource
 
-from search import search
+from search import search, build_index
 from prompt import prompt
 
 app = Flask(__name__)
@@ -32,7 +32,6 @@ class Search(Resource):
         return {"query": user_query, "results": results}
 
 if __name__ == "__main__":
-    with app.app_context():
-        # initialize chroma database
-        pass
-    app.run(debug=True)
+    print("Initializing database...")
+    build_index()
+    app.run(debug=True, port=5050)
