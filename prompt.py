@@ -1,4 +1,5 @@
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from search import search
 
 MODEL_NAME = 'Qwen/Qwen2.5-1.5B-Instruct'
 chatbot = pipeline('text-generation', model=MODEL_NAME, dtype='auto', device_map='auto')
@@ -6,13 +7,19 @@ chatbot = pipeline('text-generation', model=MODEL_NAME, dtype='auto', device_map
 # model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype='auto', device_map='auto')
 
 def prompt(query: str) -> str:
-    with open('/home/evan/evan-drake/cs-195/creative-synthesis/rag-notes-search/Notes/world_music/India.md') as notes:
-        retrieved = notes.read()
+    print(f"Received query: '{query}'")
+
+    # Asks ChromaDB for the most relevant note chunks using the user's query
+    database_results = search(query)
     
-    query = "what is raga?"
-
-    print(f"received query {query}, generating response...")
-
+    # Extract text chunks from the database results
+    retrieved_context = ""
+    for result in database_results:
+        retrieved_context += result['document_text'] + "\n\n"
+        
+    # If Chroma didn't find anything, we tell the LLM so it doesn't hallucinate
+    if not retrieved_context.strip():
+        retrieved_context = "No relevant notes were found in the database."
     prompt = [
         {
             'role': 'system',

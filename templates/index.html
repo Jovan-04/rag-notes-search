@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Notes RAG</title>
+    <style>
+        /* Basic clean styling */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #1f2937; max-width: 800px; margin: 3rem auto; padding: 0 1rem; }
+        h1 { text-align: center; color: #2563eb; }
+        .container { background-color: #ffffff; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input[type="text"] { flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; }
+        button { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn-ask { background-color: #2563eb; color: white; }
+        .btn-ask:hover { background-color: #1d4ed8; }
+        .btn-search { background-color: #4b5563; color: white; }
+        .btn-search:hover { background-color: #374151; }
+        .response-box { padding: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; min-height: 120px; white-space: pre-wrap; line-height: 1.5; }
+        .loading { display: none; color: #6b7280; font-style: italic; margin-bottom: 10px; }
+        
+        /* Styling for the raw search results */
+        .source-card { background: white; border: 1px solid #e5e7eb; border-left: 4px solid #2563eb; padding: 12px; margin-top: 10px; border-radius: 4px; font-size: 0.9em; }
+        .source-header { font-weight: bold; color: #4b5563; margin-bottom: 5px; font-size: 0.8em; text-transform: uppercase;}
+    </style>
+</head>
+<body>
+
+    <h1>📚 Class Notes AI</h1>
+    
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="queryInput" placeholder="Ask a question about your notes (e.g. What is paranoia?)" onkeypress="handleEnter(event)">
+            <button class="btn-ask" onclick="askAI()">Ask AI</button>
+            <button class="btn-search" onclick="searchNotes()">View Sources</button>
+        </div>
+
+        <div id="loadingStatus" class="loading">Thinking...</div>
+        
+        <div id="outputBox" class="response-box">
+            <em>Your answer will appear here...</em>
+        </div>
+    </div>
+
+    <script>
+        const inputElement = document.getElementById('queryInput');
+        const outputBox = document.getElementById('outputBox');
+        const loadingStatus = document.getElementById('loadingStatus');
+
+        // Allow pressing "Enter" to submit
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                askAI();
+            }
+        }
+
+        // Helper function to show loading state
+        function startLoading() {
+            loadingStatus.style.display = 'block';
+            outputBox.innerHTML = ''; // Clear previous output
+        }
+
+        // Helper function to stop loading state
+        function stopLoading() {
+            loadingStatus.style.display = 'none';
+        }
+
+        // HITS THE /prompt ENDPOINT (The RAG AI Answer)
+        async function askAI() {
+            const query = inputElement.value.trim();
+            if (!query) return;
+
+            startLoading();
+            try {
+                // Encode the URL so spaces become %20, etc.
+                const response = await fetch(`/prompt?q=${encodeURIComponent(query)}`);
+                const textResult = await response.text(); 
+                
+                outputBox.innerHTML = textResult; // Display the LLM text
+            } catch (error) {
+                outputBox.innerHTML = `<span style="color: red;">Error: Could not reach the server.</span>`;
+            }
+            stopLoading();
+        }
+
+        // HITS THE /search ENDPOINT (The Raw Database Chunks)
+        async function searchNotes() {
+            const query = inputElement.value.trim();
+            if (!query) return;
+
+            startLoading();
+            try {
+                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+                const jsonData = await response.json();
+                
+                // If there's an error from the backend
+                if (jsonData.error) {
+                    outputBox.innerHTML = `<span style="color: red;">${jsonData.error}</span>`;
+                    stopLoading();
+                    return;
+                }
+
+                // If no results found
+                if (!jsonData.results || jsonData.results.length === 0) {
+                    outputBox.innerHTML = `<em>No relevant notes found.</em>`;
+                    stopLoading();
+                    return;
+                }
+
+                // Format the JSON array into nicely styled HTML cards
+                let htmlOutput = `<strong>Found ${jsonData.results.length} relevant chunks:</strong><br>`;
+                
+                jsonData.results.forEach(result => {
+                    htmlOutput += `
+                        <div class="source-card">
+                            <div class="source-header">📄 File: ${result.source_file} (Match #${result.match_number})</div>
+                            <div>${result.document_text}</div>
+                        </div>
+                    `;
+                });
+
+                outputBox.innerHTML = htmlOutput;
+            } catch (error) {
+                outputBox.innerHTML = `<span style="color: red;">Error: Could not reach the server.</span>`;
+            }
+            stopLoading();
+        }
+    </script>
+</body>
+</html>
