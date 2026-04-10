@@ -26,7 +26,10 @@ class Search(Resource):
         if 'q' not in request.args:
             return make_response("no query parameter q found :(", 400)
 
-        return search(request.args['q'])
+        user_query = request.args['q']
+        results = search(user_query)
+
+        return {"query": user_query, "results": results}
 
 if __name__ == "__main__":
     with app.app_context():
