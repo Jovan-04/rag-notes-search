@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Class Notes RAG</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         /* Basic clean styling */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; color: #1f2937; max-width: 800px; margin: 3rem auto; padding: 0 1rem; }
@@ -16,7 +17,7 @@
         .btn-ask:hover { background-color: #1d4ed8; }
         .btn-search { background-color: #4b5563; color: white; }
         .btn-search:hover { background-color: #374151; }
-        .response-box { padding: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; min-height: 120px; white-space: pre-wrap; line-height: 1.5; }
+        .response-box { padding: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; min-height: 120px; line-height: 1.5; }
         .loading { display: none; color: #6b7280; font-style: italic; margin-bottom: 10px; }
         
         /* Styling for the raw search results */
@@ -74,9 +75,15 @@
             try {
                 // Encode the URL so spaces become %20, etc.
                 const response = await fetch(`/prompt?q=${encodeURIComponent(query)}`);
-                const textResult = await response.text(); 
-                
-                outputBox.innerHTML = textResult; // Display the LLM text
+                let textResult = await response.text(); 
+
+                // parse json formatting 
+                try {
+                    textResult = JSON.parse(textResult);
+                } catch (e) {
+                    
+                }
+                outputBox.innerHTML = marked.parse(textResult); // uses markdown formatting
             } catch (error) {
                 outputBox.innerHTML = `<span style="color: red;">Error: Could not reach the server.</span>`;
             }
